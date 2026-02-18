@@ -1,2 +1,27 @@
 [settings]
 screenshots_dir = "screenshots"
+background_image = "assets/backgrounds/background_test.png"
+fullscreen = true
+
+[assets]
+toolbar = "assets/toolbars/toolbar-test.png"
+button_rename_normal = "assets/buttons/rename-unselected.png"
+button_rename_selected = "assets/buttons/rename-selected.png"
+button_exit_normal = "assets/buttons/exit-unselected.png"
+button_exit_selected = "assets/buttons/exit-selected.png"
+
+[colors]
+bg           = "#14141e"
+bar          = "#1e1e2d"
+accent       = "#64a0ff"
+text         = "#b4b4c8"
+dim          = "#646482"
+btn_normal   = "#323246"
+btn_selected = "#3c6494"
+btn_text     = "#dcdcdc"
+key_confirm     = "#236437"
+key_confirm_sel = "#37a055"
+key_cancel      = "#6e2323"
+key_cancel_sel  = "#aa3737"
+key_special     = "#46371e"
+key_special_sel = "#826428"
