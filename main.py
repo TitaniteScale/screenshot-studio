@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 
 import pygame
@@ -166,6 +167,11 @@ def run():
     if not os.path.isabs(screenshots_dir):
         screenshots_dir = os.path.join(SCRIPT_DIR, screenshots_dir)
 
+    slideshow_dir = settings.get("slideshow_dir", "slideshow")
+    if not os.path.isabs(slideshow_dir):
+        slideshow_dir = os.path.join(SCRIPT_DIR, slideshow_dir)
+    os.makedirs(slideshow_dir, exist_ok=True)
+
     bg_image_path = settings.get("background_image", None)
     fullscreen = settings.get("fullscreen", False)
 
@@ -265,6 +271,20 @@ def run():
                 assets_cfg.get("button_exit_selected"), scale=(BTN_W, BTN_H)
             ),
         },
+        "Slideshow": {
+            "normal": load_asset(
+                assets_cfg.get("button_slideshow_off_normal"), scale=(BTN_W, BTN_H)
+            ),
+            "selected": load_asset(
+                assets_cfg.get("button_slideshow_off_selected"), scale=(BTN_W, BTN_H)
+            ),
+            "on_normal": load_asset(
+                assets_cfg.get("button_slideshow_on_normal"), scale=(BTN_W, BTN_H)
+            ),
+            "on_selected": load_asset(
+                assets_cfg.get("button_slideshow_on_selected"), scale=(BTN_W, BTN_H)
+            ),
+        },
     }
 
     # ── Shared state ───────────────────────────────────────────────────────
@@ -279,9 +299,10 @@ def run():
     IMAGE_AREA_H = WINDOW_H - BAR_H
     browse_focus = "image"  # "image" | "buttons"
     button_index = 0
-    buttons = ["Rename", "Exit"]
+    buttons = ["Rename", "Slideshow", "Exit"]
     toast_text = ""
     toast_timer = 0
+    in_slideshow = False
 
     # ── Rename state ───────────────────────────────────────────────────────
     rename_text = ""
@@ -297,12 +318,50 @@ def run():
         pygame.quit()
         sys.exit()
 
+    def check_in_slideshow():
+        nonlocal in_slideshow
+        if not image_files:
+            in_slideshow = False
+            return
+        basename = os.path.basename(image_files[current_index])
+        in_slideshow = os.path.exists(os.path.join(slideshow_dir, basename))
+
     def navigate_images(delta):
         nonlocal current_index, current_image
         if not image_files:
             return
         current_index = (current_index + delta) % len(image_files)
         current_image = load_image(image_files[current_index])
+        check_in_slideshow()
+
+    def toggle_slideshow():
+        nonlocal in_slideshow, toast_text, toast_timer
+        if not image_files:
+            return
+        src = image_files[current_index]
+        basename = os.path.basename(src)
+        dest = os.path.join(slideshow_dir, basename)
+        if in_slideshow:
+            try:
+                os.remove(dest)
+                in_slideshow = False
+                toast_text = "Removed from slideshow"
+                toast_timer = 2500
+            except OSError as e:
+                toast_text = f"Error: {e}"
+                toast_timer = 2500
+        else:
+            try:
+                shutil.copy2(src, dest)
+                in_slideshow = True
+                toast_text = "Added to slideshow"
+                toast_timer = 2500
+            except OSError as e:
+                toast_text = f"Error: {e}"
+                toast_timer = 2500
+
+    # Initialise in_slideshow for the first image
+    check_in_slideshow()
 
     def enter_rename():
         nonlocal \
@@ -400,6 +459,8 @@ def run():
                     shutdown()
                 elif buttons[button_index] == "Rename":
                     enter_rename()
+                elif buttons[button_index] == "Slideshow":
+                    toggle_slideshow()
 
     def handle_rename_key(event):
         nonlocal scene, rename_text
@@ -433,6 +494,8 @@ def run():
                         shutdown()
                     elif buttons[button_index] == "Rename":
                         enter_rename()
+                    elif buttons[button_index] == "Slideshow":
+                        toggle_slideshow()
             elif event.button == 1:  # B / Circle — back
                 browse_focus = "image"
         elif scene == SCENE_RENAME:
@@ -575,11 +638,40 @@ def run():
             selected = browse_focus == "buttons" and i == button_index
             rect = pygame.Rect(bx0 + i * (BTN_W + BTN_GAP), by, BTN_W, BTN_H)
             imgs = button_imgs.get(label, {})
-            key = "selected" if selected else "normal"
-            if imgs.get(key):
-                screen.blit(imgs[key], rect.topleft)
+
+            if label == "Slideshow":
+                img_key = (
+                    ("on_selected" if selected else "on_normal")
+                    if in_slideshow
+                    else ("selected" if selected else "normal")
+                )
+                img_surf = imgs.get(img_key)
+                if img_surf is not None:
+                    screen.blit(img_surf, rect.topleft)
+                else:
+                    # Fallback drawn button — green tint when active
+                    if in_slideshow:
+                        color = KEY_CONFIRM_SEL if selected else KEY_CONFIRM
+                        pygame.draw.rect(screen, color, rect, border_radius=8)
+                        if selected:
+                            pygame.draw.rect(screen, ACCENT, rect, 2, border_radius=8)
+                        surf = font_large.render("★ Slideshow", True, BTN_TEXT)
+                        screen.blit(
+                            surf,
+                            (
+                                rect.x + (rect.w - surf.get_width()) // 2,
+                                rect.y + (rect.h - surf.get_height()) // 2,
+                            ),
+                        )
+                    else:
+                        draw_button(screen, font_large, "+ Slideshow", rect, selected)
             else:
-                draw_button(screen, font_large, label, rect, selected)
+                key = "selected" if selected else "normal"
+                img_surf = imgs.get(key)
+                if img_surf is not None:
+                    screen.blit(img_surf, rect.topleft)
+                else:
+                    draw_button(screen, font_large, label, rect, selected)
 
         # Toast
         if toast_text:

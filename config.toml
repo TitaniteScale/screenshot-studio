@@ -1,5 +1,6 @@
 [settings]
 screenshots_dir = "screenshots"
+slideshow_dir = "slideshow"
 background_image = "assets/backgrounds/background_test.png"
 fullscreen = true
 
@@ -9,6 +10,10 @@ button_rename_normal = "assets/buttons/rename-unselected.png"
 button_rename_selected = "assets/buttons/rename-selected.png"
 button_exit_normal = "assets/buttons/exit-unselected.png"
 button_exit_selected = "assets/buttons/exit-selected.png"
+button_slideshow_off_normal = "assets/buttons/slideshow-off-unselected.png"
+button_slideshow_off_selected = "assets/buttons/slideshow-off-selected.png"
+button_slideshow_on_normal = "assets/buttons/slideshow-on-unselected.png"
+button_slideshow_on_selected = "assets/buttons/slideshow-on-selected.png"
 
 [colors]
 # Everforest Dark Medium
