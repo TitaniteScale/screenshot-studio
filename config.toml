@@ -14,6 +14,8 @@ button_slideshow_off_normal = "assets/buttons/slideshow-off-unselected.png"
 button_slideshow_off_selected = "assets/buttons/slideshow-off-selected.png"
 button_slideshow_on_normal = "assets/buttons/slideshow-on-unselected.png"
 button_slideshow_on_selected = "assets/buttons/slideshow-on-selected.png"
+button_delete_normal = "assets/buttons/delete-unselected.png"
+button_delete_selected = "assets/buttons/delete-selected.png"
 
 [colors]
 # Everforest Dark Medium
